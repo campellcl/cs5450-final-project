@@ -40,10 +40,14 @@ class CentralServer:
         def accept_connection_requests(self):
             while True:
                 # Accept the connection request:
-                client_connection_socket, client_ip = self.server_listening_socket.accept()
+                client_connection_socket, client_ip_and_port = self.server_listening_socket.accept()
                 # Receive the message:
                 msg = client_connection_socket.recv(1024)
-                response = self.process_message(msg.decode('utf-8'))
+                response = self.process_message(
+                    msg.decode('utf-8'),
+                    client_ip=client_ip_and_port[0],
+                    client_port=client_ip_and_port[1]
+                )
                 client_connection_socket.send(response.encode('utf-8'))
                 # Close the connection with the client:
                 client_connection_socket.close()
@@ -62,7 +66,9 @@ class CentralServer:
             """
             if client_id not in self.client_list.clients:
                 self.client_list.clients.append((client_ip, client_port, client_id))
-            raise NotImplementedError
+                return 'OK\n'
+            else:
+                return 'BAD\nClient already connected?'
 
         def _execute_post(self):
             """
@@ -72,7 +78,7 @@ class CentralServer:
             """
             raise NotImplementedError
 
-        def process_message(self, msg):
+        def process_message(self, msg, client_ip, client_port):
             """
             process_message: Responds to the message from the client. The received message must be defined in my protocol.
             :return response: <str> The server's response to the msg received from the client.
@@ -84,7 +90,7 @@ class CentralServer:
                 response = 'BAD\n'
                 return response
             if words[0].upper() == 'CONNECT' and len(words) == 2:
-                return self._execute_connect()
+                return self._execute_connect(client_ip=client_ip, client_port=client_port, client_id=words[1])
             elif words[0].upper() == 'POST'and len(words) == 2:
                 return self._execute_post()
             else:
