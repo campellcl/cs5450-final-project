@@ -55,7 +55,7 @@ if __name__ == '__main__':
         print(response[4:])
         print('Exiting')
         sys.exit()
-    print('Peer server listening on port: %d' % client_listening_port)
+    print('Client listening on port: %d' % client_listening_port)
     # Start the client:
     client.start()
     # wait until the client's terminate method is executed:
