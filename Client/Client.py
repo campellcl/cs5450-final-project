@@ -9,6 +9,7 @@ __created__ = '11/29/2018'
 import socket
 import threading
 import os
+import signal
 from PIL import Image
 import sys
 sys.path.append('..')
@@ -65,6 +66,11 @@ class Client(threading.Thread):
                     self.central_server_contact.connect()
                     # TODO: Send the image to the server:
                     self.central_server_contact.disconnect()
+            elif split_user_input[0].lower() == 'quit':
+                self.central_server_contact.disconnect()
+                raise os.kill(os.getpid(), signal.SIGINT)
+            else:
+                print('Unrecognized command. Malformed input.')
 
 
 

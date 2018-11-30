@@ -32,7 +32,7 @@ def handle_interrupt_signal(signal, sig_frame):
 
 
 if __name__ == '__main__':
-
+    # Attach sigint handler:
     signal.signal(signal.SIGINT, handler=handle_interrupt_signal)
 
     client_listening_port = get_free_port()
