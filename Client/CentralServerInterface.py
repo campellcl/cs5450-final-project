@@ -9,16 +9,21 @@ __created__ = '11/29/2018'
 
 import socket
 
+
 class CentralServerInterface:
 
     central_server_name = None
     central_server_port = None
-    client = None
+    client_name = None
+    client_port = None
+    client_id = None
 
-    def __init__(self, central_server_name, central_server_port, client):
+    def __init__(self, central_server_name, central_server_port, client_port, client_id):
         self.central_server_name = central_server_name
         self.central_server_port = central_server_port
-        self.client = client
+        self.client_name = socket.gethostname()
+        self.client_port = client_port
+        self.client_id = client_id
 
     def connect(self):
         """
@@ -29,15 +34,15 @@ class CentralServerInterface:
         try:
             # Use the central server's listening port to attempt a connection:
             central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            central_server_socket.bind(('', self.client.client_listening_port))
+            central_server_socket.bind(('', self.client_port))
             central_server_socket.connect((self.central_server_name, self.central_server_port))
         except Exception as err:
             print('CentralServerInterface [Error]: Unable to bind client \'%s\' with central server on %s::%s'
-                  % (self.client.client_name, self.central_server_name, self.central_server_port))
+                  % (self.client_name, self.central_server_name, self.central_server_port))
             return 'BAD\nUnable to reach central server.'
 
         # Send the connection message and receive the response:
-        msg = 'CONNECT\n%s\n' % self.client.client_id
+        msg = 'CONNECT\n%s\n' % self.client_id
         central_server_socket.send(msg.encode('utf-8'))
         response = central_server_socket.recv(1024).decode('utf-8')
         central_server_socket.close()
@@ -61,7 +66,7 @@ class CentralServerInterface:
             central_server_socket.close()
             return 'BAD\nUnable to reach central server'
         # send message and receive response:
-        msg = 'DISCONNECT\n%s\n' % self.client.client_id
+        msg = 'DISCONNECT\n%s\n' % self.client_id
         central_server_socket.send(msg.encode('utf-8'))
         response = central_server_socket.recv(1024).decode('utf-8')
         central_server_socket.close()
