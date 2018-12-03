@@ -60,22 +60,33 @@ class CentralServer:
 
         def _execute_connect(self, client_ip, client_port, client_id):
             """
-            _execute_connect: This method is run when the client sends a 'CONNECT\n<client-id>' command to the central
-                server.
+            _execute_connect: This method is run when the client sends a 'CONNECT\n<client-id>\n' command to the central
+                server. The connected client will be added to the server's list of clients if it doesn't already exist
+                as a connected client. The OK message is sent to the client if the connection attempt was successful,
+                otherwise the BAD message is sent to the client.
             :return:
             """
-            if client_id not in self.client_list.clients:
-                self.client_list.clients.append((client_ip, client_port, client_id))
-                return 'OK\n'
-            else:
-                return 'BAD\nClient already connected?'
+            result = self.client_list.add_client(client_ip=client_ip, client_port=client_port, client_id=client_id)
+            return result
+
+        def _execute_disconnect(self, client_id):
+            """
+            _execute_disconnect: This method is run when the client sends a 'DISCONNECT\n<client-id>\n' command to the
+                central server. The specified client will be removed from the server's list of clients if it hasn't
+                already been removed. The OK message is sent to the client if the disconnection attempt was successful,
+                otherwise the BAD message is sent to the client.
+            :return:
+            """
+            result = self.client_list.remove_client(client_id)
+            return result
 
         def _execute_post(self):
             """
             _execute_post: This method is run when the client sends a 'POST\n<image_vector>' command to the central
-                server.
+                server. The specified image will be added to the
             :return:
             """
+
             raise NotImplementedError
 
         def process_message(self, msg, client_ip, client_port):
@@ -91,6 +102,8 @@ class CentralServer:
                 return response
             if words[0].upper() == 'CONNECT' and len(words) == 2:
                 return self._execute_connect(client_ip=client_ip, client_port=client_port, client_id=words[1])
+            elif words[0].upper() == 'DISCONNECT' and len(words) == 2:
+                return self._execute_disconnect(client_id=words[1])
             elif words[0].upper() == 'POST'and len(words) == 2:
                 return self._execute_post()
             else:
