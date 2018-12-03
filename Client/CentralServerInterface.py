@@ -34,7 +34,7 @@ class CentralServerInterface:
         try:
             # Use the central server's listening port to attempt a connection:
             central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            central_server_socket.bind(('', self.client_port))
+            # central_server_socket.bind(('', self.client_port))
             central_server_socket.connect((self.central_server_name, self.central_server_port))
         except Exception as err:
             print('CentralServerInterface [Error]: Unable to bind client \'%s\' with central server on %s::%s'
@@ -54,7 +54,7 @@ class CentralServerInterface:
 
     def disconnect(self):
         """
-        disconnect: Sends a disconnect message to tthe central server with the ID of the client to remove.
+        disconnect: Sends a disconnect message to the central server with the ID of the client to remove.
         """
         # connect to central server (for graceful termination if possible)
         central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,6 +67,27 @@ class CentralServerInterface:
             return 'BAD\nUnable to reach central server'
         # send message and receive response:
         msg = 'DISCONNECT\n%s\n' % self.client_id
+        central_server_socket.send(msg.encode('utf-8'))
+        response = central_server_socket.recv(1024).decode('utf-8')
+        central_server_socket.close()
+        return 'OK\n'
+
+    def post(self, img):
+        """
+        post: Sends an image as an array to the central server (for storage purposes).
+        :return:
+        """
+        # connect to central server
+        central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            central_server_socket.connect((self.central_server_name, self.central_server_port))
+        except Exception as err:
+            print('CentralServerInterface [Error]: Unable to reach central server. '
+                  'Closing listening socket and aborting connection attempt.')
+            central_server_socket.close()
+            return 'BAD\nUnable to reach central server'
+        # send message and receive response
+        msg = 'POST\n%s' % img
         central_server_socket.send(msg.encode('utf-8'))
         response = central_server_socket.recv(1024).decode('utf-8')
         central_server_socket.close()
