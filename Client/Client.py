@@ -11,9 +11,10 @@ import threading
 import os
 import signal
 from PIL import Image
-import sys
-sys.path.append('..')
+# import sys
+# sys.path.append('..')
 from Client.CentralServerInterface import CentralServerInterface
+
 
 class Client(threading.Thread):
 
@@ -46,6 +47,9 @@ class Client(threading.Thread):
                 except IOError as err:
                     print('Client: Could not locate image: \'%s\' at the provided path: \'%s\'. Received error:\n\t%s'
                           % (img_name, img_path, err))
+        else:
+            print('Client: The provided image: \'%s\' could not be located relative to the current directory. '
+                  'Try using the full file path.' % img_path)
         return img
 
     def run(self):
@@ -62,16 +66,17 @@ class Client(threading.Thread):
                     img_name = split_user_input[1]
                     # Load the image:
                     img = self.load_image_tensor(img_path=img_name)
+                    if img is None:
+                        continue
                     # Connect to the server:
                     self.central_server_contact.connect()
-                    # TODO: Send the image to the server:
+                    # Send the image to the server:
+                    self.central_server_contact.post(img)
+                    # Disconnect from the central server:
                     self.central_server_contact.disconnect()
             elif split_user_input[0].lower() == 'quit':
                 self.central_server_contact.disconnect()
                 raise os.kill(os.getpid(), signal.SIGINT)
             else:
                 print('Unrecognized command. Malformed input.')
-
-
-
 
