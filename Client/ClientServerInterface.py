@@ -1,29 +1,22 @@
 """
-CentralServerInterface.py
-Provides an interface between the client (Client.py) and the central server (CentralServer.py) that encapsulates the
-    complexity associated with communicating between the two objects.
+ClientServerInterface.py
+Manages the complexity in communications between the client and the server.
 """
 
-__author__ = 'Chris Campell'
-__created__ = '11/29/2018'
-
 import socket
+from Client import Client
 
 
-class CentralServerInterface:
+class ClientServerInterface:
 
-    central_server_name = None
-    central_server_port = None
-    client_name = None
-    client_port = None
-    client_id = None
+    server_name_or_ip = None
+    server_port = None
+    client = None
 
-    def __init__(self, central_server_name, central_server_port, client_port, client_id):
-        self.central_server_name = central_server_name
-        self.central_server_port = central_server_port
-        self.client_name = socket.gethostname()
-        self.client_port = client_port
-        self.client_id = client_id
+    def __init__(self, server_name_or_ip, server_port, client):
+        self.server_name_or_ip = server_name_or_ip
+        self.server_port = server_port
+        self.client = client
 
     def connect(self):
         """
@@ -35,22 +28,22 @@ class CentralServerInterface:
             # Use the central server's listening port to attempt a connection:
             central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # central_server_socket.bind(('', self.client_port))
-            central_server_socket.connect((self.central_server_name, self.central_server_port))
+            central_server_socket.connect((self.server_name_or_ip, self.server_port))
         except Exception as err:
             print('CentralServerInterface [Error]: Unable to bind client \'%s\' with central server on %s::%s'
-                  % (self.client_name, self.central_server_name, self.central_server_port))
+                  % (self.client.hostname_or_ip, self.server_name_or_ip, self.server_port))
             return 'BAD\nUnable to reach central server.'
 
         # Send the connection message and receive the response:
-        msg = 'CONNECT\n%s\n' % self.client_id
+        msg = 'CONNECT\n%s\n' % self.client.id
         central_server_socket.send(msg.encode('utf-8'))
-        response = central_server_socket.recv(1024).decode('utf-8')
+        server_response = central_server_socket.recv(1024).decode('utf-8')
         central_server_socket.close()
-        status_code = response.split('\n')[0]
+        status_code = server_response.split('\n')[0]
         if status_code.upper() == 'BAD':
             return 'BAD\nBad port number. Perhaps it is already in use.'
         else:
-            return 'OK\n'
+            return 'OK\n%s\n' % self.client.id
 
     def disconnect(self):
         """
@@ -59,14 +52,14 @@ class CentralServerInterface:
         # connect to central server (for graceful termination if possible)
         central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            central_server_socket.connect((self.central_server_name, self.central_server_port))
+            central_server_socket.connect((self.server_name_or_ip, self.server_port))
         except Exception as err:
             print('CentralServerInterface [Error]: Unable to reach central server. '
                   'Closing listening socket and aborting connection attempt.')
             central_server_socket.close()
             return 'BAD\nUnable to reach central server'
         # send message and receive response:
-        msg = 'DISCONNECT\n%s\n' % self.client_id
+        msg = 'DISCONNECT\n%s\n' % self.client.id
         central_server_socket.send(msg.encode('utf-8'))
         response = central_server_socket.recv(1024).decode('utf-8')
         central_server_socket.close()
@@ -80,7 +73,7 @@ class CentralServerInterface:
         # connect to central server
         central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            central_server_socket.connect((self.central_server_name, self.central_server_port))
+            central_server_socket.connect((self.server_name_or_ip, self.server_port))
         except Exception as err:
             print('CentralServerInterface [Error]: Unable to reach central server. '
                   'Closing listening socket and aborting connection attempt.')

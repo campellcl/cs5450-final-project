@@ -10,20 +10,20 @@ import socket
 import threading
 import os
 import signal
-from Client.Client import Client
 from PIL import Image
 # import sys
 # sys.path.append('..')
-from Client.CentralServerInterface import CentralServerInterface
+from Client.Client import Client
+from Client.ClientServerInterface import ClientServerInterface
 
 
 class ClientUserInterface():
-    central_server_contact = None
     client_instance = None
     valid_image_extensions = ['.jpg', '.jpeg', '.png']
 
-    def __init__(self, central_server_contact):
-        self.central_server_contact = central_server_contact
+    def __init__(self, client_instance):
+        self.client_instance = client_instance
+        self.run()
 
     def print_usage_info(self):
         print('\npost <image> - Send an image file to the central server and store it. This image will now be an '
@@ -62,6 +62,7 @@ class ClientUserInterface():
                     img = self.load_image_tensor(img_path=img_name)
                     if img is None:
                         continue
+                    self.client_instance.post()
                     # Connect to the server:
                     self.central_server_contact.connect()
                     # Send the image to the server:
