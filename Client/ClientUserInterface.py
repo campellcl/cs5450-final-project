@@ -13,7 +13,7 @@ import signal
 from PIL import Image
 # import sys
 # sys.path.append('..')
-from Client.Client import Client
+from Client import Client
 from Client.ClientServerInterface import ClientServerInterface
 
 
@@ -62,15 +62,17 @@ class ClientUserInterface():
                     img = self.load_image_tensor(img_path=img_name)
                     if img is None:
                         continue
-                    self.client_instance.post()
-                    # Connect to the server:
-                    self.central_server_contact.connect()
-                    # Send the image to the server:
-                    self.central_server_contact.post(img)
-                    # Disconnect from the central server:
-                    self.central_server_contact.disconnect()
+                    raise NotImplementedError
+                    # self.client_instance.post()
+                    # # Connect to the server:
+                    # self.central_server_contact.connect()
+                    # # Send the image to the server:
+                    # self.central_server_contact.post(img)
+                    # # Disconnect from the central server:
+                    # self.central_server_contact.disconnect()
             elif split_user_input[0].lower() == 'quit':
-                self.central_server_contact.disconnect()
+                print('ClientUserInterface [Info]: Recognized quit command, relaying to client instance.')
+                self.client_instance.disconnect()
                 raise os.kill(os.getpid(), signal.SIGINT)
             else:
                 print('Unrecognized command. Malformed input.')
