@@ -64,7 +64,8 @@ class ClientServerInterface:
         msg = 'DISCONNECT\n%s\n' % self.client.id
         central_server_socket.send(msg.encode('utf-8'))
         response = central_server_socket.recv(1024).decode('utf-8')
-        print('CentralServerInterface [Info]: Exchange successful, CentralServer responds with: %s' % response)
+        print('CentralServerInterface [Info]: Exchange successful, CentralServer responds '
+              'with: %s client %d now disconnected.' % (response.split()[0], self.client.id))
         central_server_socket.close()
         return 'OK\n'
 
