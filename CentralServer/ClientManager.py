@@ -115,6 +115,10 @@ class ClientManager:
                       % client_id)
                 exit(-1)
 
+        def _run_client(self, client_id):
+            if self._client_id_in_clients(client_id):
+                self.clients[client_id].run()
+
     def __init__(self):
         if not ClientManager.client_manager:
             ClientManager.client_manager = ClientManager.__ClientManager()
@@ -147,6 +151,9 @@ class ClientManager:
     def client_in_clients(self, client):
         response = self.client_manager._client_in_clients(client=client)
         return response
+
+    def run_client(self, client_id):
+        response = self.client_manager._run_client(client_id)
 
     # def get_client_by_id(self, client_id):
     #     client = self.client_manager._get_client_by_id(client_id=client_id)
