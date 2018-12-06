@@ -58,10 +58,11 @@ if __name__ == '__main__':
         server_hostname_or_ip='localhost',
         server_port=15014
     )
-    ON RESUME: Trying to figure out how to tie in the client user-interface. The way it is currently written it is
-    expecting a client instance to associate with, but the clients are supposed to be protected with teh ClientManager
-    so perhaps the ClientManager class should be handed the user interface responsability as well? Perhaps decouple the
-    Client user interface and the client, and instead couple it to the program demo class?.
+    client_manager.run_client(client_id=client_id)
+    # ON RESUME: Trying to figure out how to tie in the client user-interface. The way it is currently written it is
+    # expecting a client instance to associate with, but the clients are supposed to be protected with teh ClientManager
+    # so perhaps the ClientManager class should be handed the user interface responsability as well? Perhaps decouple the
+    # Client user interface and the client, and instead couple it to the program demo class?.
     # Start the client user-interface:
     # client_user_interface = ClientUserInterface(client_instance=client)
     # client.start()
