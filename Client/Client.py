@@ -52,7 +52,9 @@ class Client:
             return response
 
     def disconnect(self):
+        print('Client [Info]: Received instructions to execute disconnect() command from the associated ClientUserInterface instance.')
         if self.server_contact is not None:
+            print('Client [Info]: This client instance has a pre-existing connection with the server. Notifying the associated ClientServerInterface of the intent to disconnect.')
             self.server_contact.disconnect()
         else:
             print('Client [Error]: Client cannot disconnect, is already disconnected or has lost contact with server.')
