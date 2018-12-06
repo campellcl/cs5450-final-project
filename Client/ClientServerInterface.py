@@ -49,10 +49,12 @@ class ClientServerInterface:
         """
         disconnect: Sends a disconnect message to the central server with the ID of the client to remove.
         """
+        print('ClientServerInterface [Info]: Received command from the associated Client instance to disconnect(). Attempting to re-establish link with CentralSever.')
         # connect to central server (for graceful termination if possible)
         central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             central_server_socket.connect((self.server_name_or_ip, self.server_port))
+            print('ClientServerInterface [Info]: Link re-established with server. Sending disconnect() command.')
         except Exception as err:
             print('CentralServerInterface [Error]: Unable to reach central server. '
                   'Closing listening socket and aborting connection attempt.')
@@ -62,6 +64,7 @@ class ClientServerInterface:
         msg = 'DISCONNECT\n%s\n' % self.client.id
         central_server_socket.send(msg.encode('utf-8'))
         response = central_server_socket.recv(1024).decode('utf-8')
+        print('CentralServerInterface [Info]: Exchange successful, CentralServer responds with: %s' % response)
         central_server_socket.close()
         return 'OK\n'
 
