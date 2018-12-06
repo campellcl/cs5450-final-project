@@ -10,6 +10,7 @@ import threading
 import socket
 import sys
 from Client.ClientServerInterface import ClientServerInterface
+from Client.ClientUserInterface import ClientUserInterface
 
 
 class Client:
@@ -18,6 +19,7 @@ class Client:
     id = None
     server_contact = None
     images = None
+    user_interface = None
 
     def __init__(self, client_hostname_or_ip, client_listening_port, client_id):
         self.hostname_or_ip = client_hostname_or_ip
@@ -59,5 +61,5 @@ class Client:
         # self.ImageManager.add_image(img_tensor)
         raise NotImplementedError
 
-
-
+    def run(self):
+        self.user_interface = ClientUserInterface(self)
