@@ -89,3 +89,24 @@ class ClientServerInterface:
         response = central_server_socket.recv(1024).decode('utf-8')
         central_server_socket.close()
         return response
+
+    def list_images(self, client_id):
+        # connect to central server
+        central_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            central_server_socket.connect((self.server_name_or_ip, self.server_port))
+        except Exception as err:
+            print('CentralServerInterface [Error]: Unable to reach central server. '
+                  'Closing listening socket and aborting connection attempt.')
+            central_server_socket.close()
+            return 'BAD\nUnable to reach central server'
+        # send message and recieve response
+        msg = ('LIST\nIMAGES\n%d\n' % client_id).encode('utf-8')
+        central_server_socket.send(msg)
+        response = central_server_socket.recv(1024).decode('utf-8')
+        central_server_socket.close()
+        status_code = response.split()[0]
+        if status_code.upper() == 'OK':
+            image_list = response.split()[2:]
+        return image_list
+

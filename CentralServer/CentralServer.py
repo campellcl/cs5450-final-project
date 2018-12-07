@@ -173,17 +173,27 @@ class CentralServer:
             response = 'BAD\n%s\n' % img_name
         return response
 
-    def _execute_list_images(self):
-        raise NotImplementedError
+    def _execute_list_images(self, client_id):
+        if os.path.exists('CentralServer/Images/%d' % client_id):
+            image_files = []
+            for (dir_path, dir_names, file_names) in os.walk('CentralServer/Images/%d' % client_id):
+                image_files.extend(file_names)
+                break
+            image_list_response = 'OK\n%d\n' % client_id
+            for img in image_files:
+                image_list_response = image_list_response + img + '\n'
+            return image_list_response
+        else:
+            return 'BAD\n%d\n' % client_id
 
-    def _execute_list_command(self, list_subcommand):
+    def _execute_list_command(self, list_subcommand, client_id):
         """
         _execute_list_command: This method is run when the client sends a 'LIST\n<LIST-SUBCOMMAND>' command to the
             central server. This method determines
         :return:
         """
-        if list_subcommand.upper() == 'IMGS':
-            return self._execute_list_images()
+        if list_subcommand.upper() == b'IMAGES':
+            return self._execute_list_images(client_id=client_id)
 
     def process_message(self, msg):
         """
@@ -202,10 +212,11 @@ class CentralServer:
             client_id = int(words[1].decode('utf-8'))
             client_manager_response = self._execute_disconnect(client_id=client_id)
             return client_manager_response
-        elif words[0].upper() == 'LIST' and len(words) == 2:
+        elif words[0].upper() == b'LIST' and len(words) == 3:
             subcommand = words[1]
+            client_id = int(words[2].decode('utf-8'))
             # TODO: use cookie to personalize images cached by client.
-            return self._execute_list_command(list_subcommand=subcommand)
+            return self._execute_list_command(list_subcommand=subcommand, client_id=client_id)
         else:
             response = 'BAD\n'
             return response

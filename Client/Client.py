@@ -66,5 +66,20 @@ class Client:
             response = self.server_contact.post(img_name=img_name, img=img)
         return response
 
+    def list_command(self, subcommand):
+        if subcommand == 'IMAGES':
+            sys_out = ''
+            image_list = self.server_contact.list_images(client_id=self.id)
+            if image_list is not None:
+                for i, image in enumerate(image_list):
+                    if i != len(image_list) - 1:
+                        sys_out = sys_out + '%d) %s\n' % (i, image)
+                    else:
+                        sys_out = sys_out + '%d) %s' % (i, image)
+                print(sys_out)
+                return True
+            else:
+                return False
+
     def run(self):
         self.user_interface = ClientUserInterface(self)

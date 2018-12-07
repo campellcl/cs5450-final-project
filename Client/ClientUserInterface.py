@@ -29,6 +29,7 @@ class ClientUserInterface():
     def print_usage_info(self):
         print('\npost <image> - Send an image file to the central server and store it. This image will now be an '
               'applicable target for following commands.')
+        print('list images - Display a list of the images this client has stored on the central server.')
         print('quit')
 
     def load_image(self, img_path):
@@ -63,7 +64,8 @@ class ClientUserInterface():
             self.print_usage_info()
             user_input = input()
             split_user_input = user_input.split(' ')
-            if split_user_input[0].lower() == 'post':
+            if split_user_input[0].upper() == 'POST':
+                print('ClientUserInterface [Info]: Recognized POST command, relaying to client instance.')
                 if len(split_user_input) > 1:
                     img_path = split_user_input[1]
                     img_name = os.path.basename(img_path)
@@ -75,10 +77,14 @@ class ClientUserInterface():
                     status_code = response.split()[0]
                     if status_code.upper() == 'OK':
                         print('Client [Info]: Received OK \'%s\' response from server.' % img_name)
-            elif split_user_input[0].lower() == 'quit':
-                print('ClientUserInterface [Info]: Recognized quit command, relaying to client instance.')
+            elif split_user_input[0].upper() == 'QUIT':
+                print('ClientUserInterface [Info]: Recognized QUIT command, relaying to client instance.')
                 self.client_instance.disconnect()
                 raise os.kill(os.getpid(), signal.SIGINT)
+            elif split_user_input[0].upper() == 'LIST':
+                print('ClientUserInterface [Info]: Recognized LIST command, relaying to client instance.')
+                subcommand = split_user_input[1].upper()
+                self.client_instance.list_command(subcommand=subcommand)
             else:
                 print('Unrecognized command. Malformed input.')
 
