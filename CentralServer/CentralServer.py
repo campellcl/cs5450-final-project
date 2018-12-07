@@ -7,6 +7,8 @@ Listens to connection requests and manages interface between client and the clas
 import signal
 import socket
 import sys
+import os
+import re
 from Client.Client import Client
 from ClientManager import ClientManager
 
@@ -38,6 +40,17 @@ class CentralServer:
         # Only responsibility is to accept connection requests:
         self.accept_connection_requests()
 
+    def _parse_post_message(self, msg):
+        img_name = None
+        img_bin = None
+        if b'.png' in msg or b'.PNG' in msg:
+            header_end = msg.find(b'\x89PNG')
+            msg_header = msg[0:header_end]
+            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
+            img_name = img_name.decode('utf-8')
+            img_bin = msg[header_end:-2]
+        return img_name, img_bin
+
     def accept_connection_requests(self):
         while True:
             # Accept the connection request:
@@ -56,6 +69,25 @@ class CentralServer:
                 else:
                     client_id = int(client_id)
                     response = 'OK\n%d\n' % client_id
+            elif method.upper() == b'POST':
+                msg_all = bytearray()
+                msg_all += msg
+                num_segments = 1
+                while True:
+                    msg = client_connection_socket.recv(1024)
+                    num_segments += 1
+                    # print('segment: %d, %s' % (num_segments, msg))
+                    if not msg:
+                        # print('breaking!')
+                        break
+                    msg_all += msg
+                    if msg_all[-2:] == b'\r\n':
+                        # print('breaking!')
+                        break
+                msg = msg_all
+                img_name, img_bin = self._parse_post_message(msg)
+                self._execute_post(img_name=img_name, bin_img=img_bin)
+
             else:
                 response = self.process_message(msg=msg)
             # Reply to the client with the result of the method invocation:
@@ -78,6 +110,7 @@ class CentralServer:
         :return client_id: <int> The unique identifier now associated with the client if the connection request was
             successful, else None is returned.
         """
+
         client_id = None
         client_manager_response = self.client_manager.add_client(
             client_hostname_or_ip=client_hostname_or_ip,
@@ -86,6 +119,8 @@ class CentralServer:
         status_code = client_manager_response.split()[0]
         if status_code.upper() == 'OK':
             client_id = client_manager_response.split()[1]
+            print('CentralServer [Info]: Executed command to connect client \'%s\' successfully. '
+                  'Client now registered with the CentralServer\'s ClientManager instance.' % client_id)
         return client_id
 
     def _execute_disconnect(self, client_id):
@@ -101,13 +136,24 @@ class CentralServer:
         print('CentralServer [Info]: Remaining Clients: %d' % len(self.client_manager.clients))
         return client_manager_response
 
-    def _execute_post(self):
+    def _execute_post(self, img_name, bin_img):
         """
         _execute_post: This method is run when the client sends a 'POST\n<image_vector>' command to the central
             server. The specified image will be added to the list of persistent images for that client.
+        :param bin_img: <bytearray> An image received from the client, still encoded as binary.
         :return:
         """
-
+        # TODO: Handle the storing of images in directories relative to the clients themselves, not a global dir.
+        if not os.path.exists('CentralServer/Images'):
+            os.mkdir('CentralServer/Images')
+        try:
+            outfile = open('CentralServer/Images/%s' % img_name, 'wb')
+            outfile.write(bin_img)
+            outfile.close()
+        except Exception as err:
+            print('Couldn\'t save the image: \'%s\'. Encountered error: %s' % (img_name, err))
+        import matplotlib.pyplot as plt
+        plt.imshow(bin_img)
         raise NotImplementedError
 
     def _execute_list_images(self):
@@ -139,8 +185,10 @@ class CentralServer:
             client_id = int(words[1].decode('utf-8'))
             client_manager_response = self._execute_disconnect(client_id=client_id)
             return client_manager_response
-        elif words[0].upper() == 'POST'and len(words) == 2:
-            return self._execute_post()
+        elif words[0].upper() == b'POST'and len(words) >= 2:
+            img_bin = msg[msg.find(b'POST\n') + len('POST\n'):]
+            self_response = self._execute_post(bin_img=img_bin)
+            return self_response
         elif words[0].upper() == 'LIST' and len(words) == 2:
             subcommand = words[1]
             # TODO: use cookie to personalize images cached by client.
