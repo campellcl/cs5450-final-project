@@ -41,38 +41,24 @@ class CentralServer:
         self.accept_connection_requests()
 
     def _parse_post_message(self, msg):
-        img_name = None
-        img_bin = None
         if b'.png' in msg or b'.PNG' in msg:
             header_end = msg.find(b'\x89PNG')
-            msg_header = msg[0:header_end]
-            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
-            img_name = img_name.decode('utf-8')
-            img_bin = msg[header_end:-2]
         elif b'.jpg' in msg:
             header_end = msg.find(b'.jpg\n') + len('.jpg\n')
-            msg_header = msg[0:header_end]
-            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
-            img_name = img_name.decode('utf-8')
-            img_bin = msg[header_end:-2]
         elif b'.JPG' in msg:
             header_end = msg.find(b'.JPG\n') + len('.JPG\n')
-            msg_header = msg[0:header_end]
-            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
-            img_name = img_name.decode('utf-8')
-            img_bin = msg[header_end:-2]
         elif b'.jpeg' in msg:
             header_end = msg.find(b'.jpeg\n') + len('.jpeg\n')
-            msg_header = msg[0:header_end]
-            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
-            img_name = img_name.decode('utf-8')
-            img_bin = msg[header_end:-2]
         elif b'.JPEG' in msg:
             header_end = msg.find(b'.JPEG\n') + len('.JPEG\n')
-            msg_header = msg[0:header_end]
-            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
-            img_name = img_name.decode('utf-8')
-            img_bin = msg[header_end:-2]
+        else:
+            header_end = -1
+            print('CentralServer [Error]: Failed to parse the POST message sent by the client successfully.')
+            exit(-1)
+        msg_header = msg[0:header_end]
+        img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
+        img_name = img_name.decode('utf-8')
+        img_bin = msg[header_end:-2]
         return img_name, img_bin
 
     def accept_connection_requests(self):
