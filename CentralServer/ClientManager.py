@@ -85,11 +85,18 @@ class ClientManager:
         response = 'OK\n%s\n' % desired_client_id
         return response
 
-    def _get_client_by_id(self, client_id):
+    def get_client_by_id(self, client_id):
         if self._client_id_in_clients(client_id):
             return self.clients[client_id]
         else:
             return None
+
+    def get_client_id_by_hostname_or_ip_and_port(self, client_hostname_or_ip, client_port):
+        for client_id, client in self.clients.items():
+            if client_hostname_or_ip == client.hostname_or_ip:
+                return client_id
+        return None
+
 
     def connect_client(self, client_id, server_hostname_or_ip, server_port):
         if self._client_id_in_clients(client_id=client_id):
@@ -116,6 +123,9 @@ class ClientManager:
             print('ClientManager [Error]: The provided client id: \'%s\' is not in the manager\'s list of clients.'
                   % client_id)
             exit(-1)
+
+    def client_in_clients(self, client_hostname_or_ip, client_port):
+        raise NotImplementedError
 
     def run_client(self, client_id):
         if self._client_id_in_clients(client_id):

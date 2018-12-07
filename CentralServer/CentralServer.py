@@ -49,6 +49,30 @@ class CentralServer:
             img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
             img_name = img_name.decode('utf-8')
             img_bin = msg[header_end:-2]
+        elif b'.jpg' in msg:
+            header_end = msg.find(b'.jpg\n') + len('.jpg\n')
+            msg_header = msg[0:header_end]
+            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
+            img_name = img_name.decode('utf-8')
+            img_bin = msg[header_end:-2]
+        elif b'.JPG' in msg:
+            header_end = msg.find(b'.JPG\n') + len('.JPG\n')
+            msg_header = msg[0:header_end]
+            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
+            img_name = img_name.decode('utf-8')
+            img_bin = msg[header_end:-2]
+        elif b'.jpeg' in msg:
+            header_end = msg.find(b'.jpeg\n') + len('.jpeg\n')
+            msg_header = msg[0:header_end]
+            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
+            img_name = img_name.decode('utf-8')
+            img_bin = msg[header_end:-2]
+        elif b'.JPEG' in msg:
+            header_end = msg.find(b'.JPEG\n') + len('.JPEG\n')
+            msg_header = msg[0:header_end]
+            img_name = msg_header[msg_header.find(b'POST\n') + len('POST\n'):-1]
+            img_name = img_name.decode('utf-8')
+            img_bin = msg[header_end:-2]
         return img_name, img_bin
 
     def accept_connection_requests(self):
@@ -70,6 +94,14 @@ class CentralServer:
                     client_id = int(client_id)
                     response = 'OK\n%d\n' % client_id
             elif method.upper() == b'POST':
+                client_id = self.client_manager.get_client_id_by_hostname_or_ip_and_port(
+                    client_hostname_or_ip=client_ip_and_port[0],
+                    client_port=client_ip_and_port[1]
+                )
+                if client_id is None:
+                    print('CentralServer [Error]: Received POST command from client who presumably had previously '
+                          'connected. However, the client could not be identified by hostname and port.')
+                    exit(-1)
                 msg_all = bytearray()
                 msg_all += msg
                 num_segments = 1
@@ -86,8 +118,7 @@ class CentralServer:
                         break
                 msg = msg_all
                 img_name, img_bin = self._parse_post_message(msg)
-                self._execute_post(img_name=img_name, bin_img=img_bin)
-
+                response = self._execute_post(client_id=client_id, img_name=img_name, bin_img=img_bin)
             else:
                 response = self.process_message(msg=msg)
             # Reply to the client with the result of the method invocation:
@@ -136,7 +167,7 @@ class CentralServer:
         print('CentralServer [Info]: Remaining Clients: %d' % len(self.client_manager.clients))
         return client_manager_response
 
-    def _execute_post(self, img_name, bin_img):
+    def _execute_post(self, client_id, img_name, bin_img):
         """
         _execute_post: This method is run when the client sends a 'POST\n<image_vector>' command to the central
             server. The specified image will be added to the list of persistent images for that client.
@@ -144,17 +175,17 @@ class CentralServer:
         :return:
         """
         # TODO: Handle the storing of images in directories relative to the clients themselves, not a global dir.
-        if not os.path.exists('CentralServer/Images'):
-            os.mkdir('CentralServer/Images')
+        if not os.path.exists('CentralServer/Images/%d' % client_id):
+            os.mkdir('CentralServer/Images/%d' % client_id)
         try:
-            outfile = open('CentralServer/Images/%s' % img_name, 'wb')
+            outfile = open(('CentralServer/Images/%d/%s' % (client_id, img_name)), 'wb')
             outfile.write(bin_img)
             outfile.close()
+            response = 'OK\n%s\n' % img_name
         except Exception as err:
             print('Couldn\'t save the image: \'%s\'. Encountered error: %s' % (img_name, err))
-        import matplotlib.pyplot as plt
-        plt.imshow(bin_img)
-        raise NotImplementedError
+            response = 'BAD\n%s\n' % img_name
+        return response
 
     def _execute_list_images(self):
         raise NotImplementedError

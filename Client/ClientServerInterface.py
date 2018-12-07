@@ -88,4 +88,4 @@ class ClientServerInterface:
         central_server_socket.send(msg)
         response = central_server_socket.recv(1024).decode('utf-8')
         central_server_socket.close()
-        return 'OK\n'
+        return response

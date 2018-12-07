@@ -71,14 +71,10 @@ class ClientUserInterface():
                     img = self.load_image(img_path=img_path)
                     if img is None:
                         continue
-                    self.client_instance.post(img_name=img_name, img=img)
-                    # self.client_instance.post()
-                    # # Connect to the server:
-                    # self.central_server_contact.connect()
-                    # # Send the image to the server:
-                    # self.central_server_contact.post(img)
-                    # # Disconnect from the central server:
-                    # self.central_server_contact.disconnect()
+                    response = self.client_instance.post(img_name=img_name, img=img)
+                    status_code = response.split()[0]
+                    if status_code.upper() == 'OK':
+                        print('Client [Info]: Received OK \'%s\' response from server.' % img_name)
             elif split_user_input[0].lower() == 'quit':
                 print('ClientUserInterface [Info]: Recognized quit command, relaying to client instance.')
                 self.client_instance.disconnect()
