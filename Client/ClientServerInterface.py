@@ -69,7 +69,7 @@ class ClientServerInterface:
         central_server_socket.close()
         return 'OK\n'
 
-    def post(self, img):
+    def post(self, img_name, img):
         """
         post: Sends an image as an array to the central server (for storage purposes).
         :return:
@@ -84,8 +84,8 @@ class ClientServerInterface:
             central_server_socket.close()
             return 'BAD\nUnable to reach central server'
         # send message and receive response
-        msg = 'POST\n%s' % img
-        central_server_socket.send(msg.encode('utf-8'))
+        msg = ('POST\n%s\n' % img_name).encode('utf-8') + img + '\r\n'.encode('utf-8')
+        central_server_socket.send(msg)
         response = central_server_socket.recv(1024).decode('utf-8')
         central_server_socket.close()
         return 'OK\n'

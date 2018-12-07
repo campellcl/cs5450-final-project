@@ -10,6 +10,7 @@ import socket
 import threading
 import os
 import signal
+import numpy as np
 from PIL import Image
 # import sys
 # sys.path.append('..')
@@ -30,17 +31,24 @@ class ClientUserInterface():
               'applicable target for following commands.')
         print('quit')
 
-    def load_image_tensor(self, img_path):
+    def load_image(self, img_path):
         img = None
         if os.path.exists(img_path) and os.path.isfile(img_path):
             img_name = os.path.basename(img_path).split('.')[0]
-            img_extension = os.path.basename(img_path).split('.')[1]
+            img_extension = '.' + str(os.path.basename(img_path).split('.')[1])
             if img_extension.lower() in self.valid_image_extensions:
                 try:
-                    img = Image.open(img_path)
-                except IOError as err:
+                    img_bin = open(img_path, 'rb')
+                    img = img_bin.read()
+                    img_bin.close()
+                    # pil_img = Image.open(img_path)
+                    # img = np.array(pil_img)
+                    # pil_img.close()
+                except Exception as err:
                     print('Client: Could not locate image: \'%s\' at the provided path: \'%s\'. Received error:\n\t%s'
                           % (img_name, img_path, err))
+                return img
+
         else:
             print('Client: The provided image: \'%s\' could not be located relative to the current directory. '
                   'Try using the full file path.' % img_path)
@@ -57,12 +65,13 @@ class ClientUserInterface():
             split_user_input = user_input.split(' ')
             if split_user_input[0].lower() == 'post':
                 if len(split_user_input) > 1:
-                    img_name = split_user_input[1]
+                    img_path = split_user_input[1]
+                    img_name = os.path.basename(img_path)
                     # Load the image:
-                    img = self.load_image_tensor(img_path=img_name)
+                    img = self.load_image(img_path=img_path)
                     if img is None:
                         continue
-                    raise NotImplementedError
+                    self.client_instance.post(img_name=img_name, img=img)
                     # self.client_instance.post()
                     # # Connect to the server:
                     # self.central_server_contact.connect()

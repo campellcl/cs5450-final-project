@@ -59,9 +59,10 @@ class Client:
         else:
             print('Client [Error]: Client cannot disconnect, is already disconnected or has lost contact with server.')
 
-    def add_image(self, img_tensor):
-        # self.ImageManager.add_image(img_tensor)
-        raise NotImplementedError
+    def post(self, img_name, img):
+        print('Client [Info]: Received instructions to execute post() command from the associated ClientUserInterface instance.')
+        if self.server_contact is not None:
+            response = self.server_contact.post(img_name=img_name, img=img)
 
     def run(self):
         self.user_interface = ClientUserInterface(self)
