@@ -202,10 +202,6 @@ class CentralServer:
             client_id = int(words[1].decode('utf-8'))
             client_manager_response = self._execute_disconnect(client_id=client_id)
             return client_manager_response
-        elif words[0].upper() == b'POST'and len(words) >= 2:
-            img_bin = msg[msg.find(b'POST\n') + len('POST\n'):]
-            self_response = self._execute_post(bin_img=img_bin)
-            return self_response
         elif words[0].upper() == 'LIST' and len(words) == 2:
             subcommand = words[1]
             # TODO: use cookie to personalize images cached by client.
