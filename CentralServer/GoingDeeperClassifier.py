@@ -360,6 +360,14 @@ if __name__ == '__main__':
 
     # Now we can use the graph we restored with the protobuf in a session (but keep in mind constant ops only):
     with tf.Session(graph=graph) as sess:
+        On resume: this script almost works, but it turns out I can't' pass methods operating on tensors in different
+        graphs (even if they are in the same session). So I need to re-write to load the graph_def and then augment with
+        the image_decoding subgraph. However this may not work because these tensors would not have constant ops and would
+        require intialization, whereas the other tensors in the computational graph do not require initalization.
+        Intermixing a calculation among the constant op tensors and the tf.Variable tensors may not be possible.
+        It may be necessary to modify the source model export code to include the image decoding subgraph. All of this
+        work is for the forward pass of the sample image tensor to get the bottlneck tensor to feed into the constant
+        re-train_ops restored from the graph def file.
         '''
         Need to create a tensor to store the results of the forward pass through the initial source network:
         '''
