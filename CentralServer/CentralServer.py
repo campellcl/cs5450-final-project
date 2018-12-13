@@ -10,6 +10,8 @@ import sys
 import os
 import re
 import numpy as np
+import sys
+sys.path.append('..')
 from Client.Client import Client
 from ClientManager import ClientManager
 from GoingDeeperClassifier import GoingDeeperClassifier
@@ -260,5 +262,5 @@ if __name__ == '__main__':
     signal.signal(signalnum=signal.SIGINT, handler=handle_interrupt_signal)
     # Create the listening socket for connection requests:
     server_port = 15014
-    server_name = 'localhost'
+    server_name = '192.168.1.87'
     central_server = CentralServer(server_listening_port=server_port, server_hostname=server_name)
