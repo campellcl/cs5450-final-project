@@ -66,4 +66,6 @@ class GoingDeeperClassifier:
         results = np.squeeze(results)
         top_k = results.argsort()[-5:][::-1]
         labels = load_labels(self.model_label_file_path)
-        return top_k, labels
+        for i in top_k:
+            tf.logging.info('label: %s, %.2f%%' % (labels[i], results[i] * 100))
+        return labels, results

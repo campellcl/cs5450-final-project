@@ -30,6 +30,8 @@ class ClientUserInterface():
         print('\npost <image> - Send an image file to the central server and store it. This image will now be an '
               'applicable target for following commands.')
         print('list images - Display a list of the images this client has stored on the central server.')
+        print('classify <image_index> - Select an image from the list of images this client has stored on the '
+              'central server to perform a classification of.')
         print('quit')
 
     def load_image(self, img_path):
@@ -85,6 +87,14 @@ class ClientUserInterface():
                 print('ClientUserInterface [Info]: Recognized LIST command, relaying to client instance.')
                 subcommand = split_user_input[1].upper()
                 self.client_instance.list_command(subcommand=subcommand)
+            elif split_user_input[0].upper() == 'CLASSIFY':
+                if len(split_user_input) != 2:
+                    print('ClientUserInterface [Error]: The CLASSIFY command must be issued along with the index of '
+                          'the image which should be classified.')
+                else:
+                    print('ClientUserInterface [Info]: Recognized CLASSIFY command, relaying to client instance.')
+                    server_image_index = int(split_user_input[1])
+                    self.client_instance.classify_command(server_image_index=server_image_index)
             else:
                 print('Unrecognized command. Malformed input.')
 

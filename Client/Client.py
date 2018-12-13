@@ -81,5 +81,14 @@ class Client:
             else:
                 return False
 
+    def classify_command(self, server_image_index):
+        server_response = self.server_contact.classify_image(client_id=self.id, server_image_index=server_image_index)
+        if 'OK' in server_response:
+            predicted_class_label = server_response.split('\n')[1]
+            probability = float(server_response.split('\n')[2])
+            print('Client [Info]: Server predicts class label: \'%s\' with %.2f%% probability.' % (predicted_class_label, probability))
+        else:
+            print(server_response)
+
     def run(self):
         self.user_interface = ClientUserInterface(self)

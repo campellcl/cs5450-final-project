@@ -9,8 +9,10 @@ import socket
 import sys
 import os
 import re
+import numpy as np
 from Client.Client import Client
 from ClientManager import ClientManager
+from GoingDeeperClassifier import GoingDeeperClassifier
 
 __author__ = 'Chris Campell'
 __created__ = '11/29/2018'
@@ -34,10 +36,12 @@ class CentralServer:
         self.server_listening_socket.bind((self.server_hostname, self.server_listening_port))
         self.last_client = None
         # Param backlog=1
+        # Instantiate ClassifierManager to handle classification requests:
+        # self.classifier_manager = ClassifierManager()
         self.server_listening_socket.listen(1)
         print('CentralServer [Info]: The CentralServer instance is listening on port %s'
               % self.server_listening_port)
-        # Only responsibility is to accept connection requests:
+        # Primary responsibility is to accept incoming connection requests:
         self.accept_connection_requests()
 
     def _parse_post_message(self, msg):
@@ -160,7 +164,7 @@ class CentralServer:
         :param bin_img: <bytearray> An image received from the client, still encoded as binary.
         :return:
         """
-        # TODO: Handle the storing of images in directories relative to the clients themselves, not a global dir.
+        # TODO: Remove hardcoded paths.
         if not os.path.exists('CentralServer/Images/%d' % client_id):
             os.mkdir('CentralServer/Images/%d' % client_id)
         try:
@@ -174,6 +178,7 @@ class CentralServer:
         return response
 
     def _execute_list_images(self, client_id):
+        # TODO: remove hardcoded paths.
         if os.path.exists('CentralServer/Images/%d' % client_id):
             image_files = []
             for (dir_path, dir_names, file_names) in os.walk('CentralServer/Images/%d' % client_id):
@@ -217,6 +222,28 @@ class CentralServer:
             client_id = int(words[2].decode('utf-8'))
             # TODO: use cookie to personalize images cached by client.
             return self._execute_list_command(list_subcommand=subcommand, client_id=client_id)
+        elif words[0].upper() == b'CLASSIFY' and len(words) == 3:
+            client_id = int(words[1].decode('utf-8'))
+            target_image_index = int(words[2].decode('utf-8'))
+            print('CentralServer [Info]: Client %s requests CLASSIFY img: %s' % (client_id, target_image_index))
+            clf_path = 'C:/Users/ccamp/Documents/GitHub/HerbariumDeep/frameworks/TensorFlow/TFHub/tmp/trained_model/'
+            clf_label_path = 'C:/Users/ccamp/Documents/GitHub/HerbariumDeep/frameworks/TensorFlow/TFHub/tmp/output_labels.txt'
+            going_deeper_classifier = GoingDeeperClassifier(clf_path, clf_label_path)
+            # Get the image path:
+            if os.path.exists('CentralServer/Images/%d' % client_id):
+                image_files = []
+                for (dir_path, dir_names, file_names) in os.walk('CentralServer/Images/%d' % client_id):
+                    image_files.extend(file_names)
+                    break
+                labels, results = going_deeper_classifier.classify(
+                    image_path=os.path.join('CentralServer/Images/%d' % client_id, image_files[target_image_index])
+                )
+                predicted = labels[np.argmax(results)]
+                response = 'OK\n%s\n%f\n' % (predicted, np.max(results))
+            else:
+                response = 'BAD\nImageNotFound\n'
+            return response
+
         else:
             response = 'BAD\n'
             return response
